@@ -1,0 +1,14 @@
+
+
+
+
+
+.build/mega2560/src/arduinogauge.cpp : src/arduinogauge.ino
+	@mkdir -p .build/mega2560/src
+	@echo [93msrc/arduinogauge.ino[0m
+	@/usr/local/bin/ino preproc  -o $@ $^
+
+
+all : .build/mega2560/src/arduinogauge.cpp
+	@true
+

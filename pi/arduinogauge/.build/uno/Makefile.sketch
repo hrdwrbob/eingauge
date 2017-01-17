@@ -1,0 +1,14 @@
+
+
+
+
+
+.build/uno/src/arduinogauge.cpp : src/arduinogauge.ino
+	@mkdir -p .build/uno/src
+	@echo [93msrc/arduinogauge.ino[0m
+	@/usr/local/bin/ino preproc  -o $@ $^
+
+
+all : .build/uno/src/arduinogauge.cpp
+	@true
+

@@ -1,0 +1,65 @@
+# get rid of the white outline around the inside of the window border
+window.client.padding.width: 0
+
+# active window title bar
+window.active.title.bg: raised
+window.active.title.bg.highlight: 35
+window.active.title.bg.shadow: 05
+window.active.title.bg.color: #86abd9
+window.active.title.separator.color: #4E76A8
+window.active.label.bg: parentrelative
+window.active.label.text.color: #FFFFFF
+window.active.label.text.font: shadow=y : shadowtint=30 : shadowoffset=1
+
+# inactive window title bar
+window.inactive.title.bg: raised
+window.inactive.title.bg.highlight: 35
+window.inactive.title.bg.shadow: 05
+window.inactive.title.bg.color: #E3E2E0
+window.inactive.title.separator.color: #96999D
+window.inactive.label.bg: parentrelative
+window.inactive.label.text.color: #70747D
+window.inactive.label.text.font: shadow=n
+
+# maximise, minimise etc. buttons
+*.button.*.bg: parentrelative border
+*.button.*.bg.border.color: #49678B
+*.button.*.bg.highlight: 35
+*.button.*.bg.shadow: 35
+window.active.button.toggled.pressed.bg: parentrelative sunken
+window.active.button.hover.bg: parentrelative raised
+window.active.button.*.image.color: #F4F5F6
+window.inactive.button.*.image.color: #6D6C6C
+
+# window resize handles
+window.handle.width: 5
+window.*.handle.bg: raised solid
+window.*.handle.bg.color: #EAEBEC
+window.*.grip.bg: raised solid
+window.*.grip.bg.color: #EAEBEC
+
+# menus
+menu.border.color: #AAAAAA
+menu.separator.color: #AAAAAA
+
+menu.title.bg: solid flat
+menu.title.bg.color: #E6E7E6
+menu.title.text.color: #111111
+
+menu.items.bg: solid flat
+menu.items.bg.color: #FFFFFF
+menu.items.text.color: #111111
+
+menu.items.active.bg: flat border
+menu.items.active.bg.color: #8CB0DC
+menu.items.active.text.color: #FFFFFF
+
+menu.items.disabled.text.color: #AAAAAA
+
+
+
+
+
+
+
+
