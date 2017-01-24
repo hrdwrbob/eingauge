@@ -3,6 +3,7 @@ import struct
 import time
 import pygame, sys
 import numpy as np
+from collections import deque
 from pygame.locals import *
 REFRESHDELAY=100
 screen = pygame.display.set_mode((800, 480),pygame.FULLSCREEN)
@@ -10,33 +11,60 @@ pygame.font.init()
 rawdata = dict()
 realdata = dict()
 arduinomap = dict()
-arduinomap['iat'] = [99, 125, 155, 190, 229, 272, 319, 368, 419, 470, 521, 570, 616, 660, 700, 737, 770, 800, 827, 850, 871, 889, 905, 919, 931, 942, 951, 959, 966, 972, 978 ]
-arduinomap['temp'] = [ 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150]
-arduinomap['tempsensor'] = [0, 20, 40, 80, 120, 160, 203, 239, 279, 321, 361, 409, 458, 500, 530, 558, 601, 631, 666, 701, 736, 771, 806, 841, 876, 911, 946, 981, 1016, 1051, 1086]
 ser = serial.Serial('/dev/ttyACM0')
 ser.write(b'1')
 time.sleep(1) # Settle the serial.
+
+
+class SensorData():
+    "A 1D ring buffer using numpy arrays"
+    def __init__(self, length):
+        self.data = np.zeros(length, dtype='f')
+        self.index = 0
+
+    def add(self, x):
+        "add x to ring buffer"
+        self.index = (++self.index) % self.data.size
+        self.data[self.index] = x
+
+    def get(self):
+        "Returns the first-in-first-out data in the ring buffer"
+        idx = (self.index + np.arange(self.data.size)) %self.data.size
+        return self.data[idx]
+
+    def weighted_average(self):
+        "Returns the weighted average value - newest is weighted highest."
+        for x in range(0, self.data.size-1):
+            # Weight the newest data the highest.
+            total = self.data[index-x]*(self.data.size-x)
+            totalcount = totalcount + (self.data.size-x)
+        return total/totalcount
+
+
+Class Sensor(object):
+  arduinomap['iat'] = [99, 125, 155, 190, 229, 272, 319, 368, 419, 470, 521, 570, 616, 660, 700, 737, 770, 800, 827, 850, 871, 889, 905, 919, 931, 942, 951, 959, 966, 972, 978 ]
+  arduinomap['temp'] = [ 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150]
+  arduinomap['tempsensor'] = [0, 20, 40, 80, 120, 160, 203, 239, 279, 321, 361, 409, 458, 500, 530, 558, 601, 631, 666, 701, 736, 771, 806, 841, 876, 911, 946, 981, 1016, 1051, 1086]
+
+  def __init__(self,name,units,type):
+    self.name = name
+    self.units = units
+    self.type = type
+    self.historylength = 5
+    self.normalisation = 5
+    self.values = SensorData(historylength)
+  def get_data(self,ser):
+      rawvalue = ser.read(3)
+      struct.unpack('>HB',x)[0]
+      if (self.type == "pressure") {
+        value = max(0,rawdata-102)*200)/612) # Can't have negative pressure.
+      } else if (self.type == "iat" ) {
+        value = round(np.interp(rawdata['iatpreic'],arduinomap['iat'],arduinomap['temp']),2)
+      } else if (self.type == "temp") {
+        value = round(np.interp(rawdata['oiltemp'],arduinomap['tempsensor'],arduinomap['temp']),2)
+      }
 def get_data():
   ser.write(b'1')
-  x = ser.read(3)
-  rawdata['enginemap'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['oilpressure'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['fuelpressure'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['coolanttemp'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['iatpreic'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['iatpostic'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['atmomap'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['oiltemp'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
-  rawdata['afr'] =  struct.unpack('>HB',x)[0]
-  x = ser.read(3)
   rawdata['voltage'] =  struct.unpack('>HB',x)[0]
   realdata['oilpressure'] = {}
   realdata['oilpressure']['value'] = ((rawdata['oilpressure']-102)*200)/612
