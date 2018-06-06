@@ -1,3 +1,4 @@
+
 # Wiring
 This details wiring I used in my implementation of eingauge for my AUDM 2005 Subary Liberty GT. This is a good starting point, but is mainly documentation for my reference.
 
@@ -17,7 +18,7 @@ gives you PSI.
 
 ## Power box.
 I have a power box that manages power. It performs the following functions:
-* voltage divider to measure the cars voltage 
+* Voltage divider to measure the cars voltage 
 * 5V power supply
 * 5V signals on/off for IGN and Illum.
 * Auto switches the arduino power on when IGN is turned on. 
@@ -35,7 +36,7 @@ Colour | Meaning
 Red | IGN
 Black/brown | GND
 Yellow | Illum
-White/greenConstant +12V
+White/greenConstant | +12V
 
 ### Power box arduino pin output
 power box | description | Wire colour
@@ -53,7 +54,8 @@ Analog out  | +12V with 220k/100k voltage divider | Black
 
 ### Pi 40 pin plug.
 The pi has a plug that cycles colours every 10 pins, here's the key:
-Pin % 10 | colour
+
+Pin | colour
 ------------ | -------------
 1 | black
 2 | white
@@ -93,7 +95,7 @@ Number| Meaning
 
 
 ### Raspberry Pi OLED Display pins
-pin num(pi desc) Type colour [connecting number]
+
 Pin Number|description|colour|Number on the ribbon cable
 ------------ | ------------- | -------------| -------------
 2 | +5V | white | 2
@@ -107,6 +109,7 @@ Pin Number|description|colour|Number on the ribbon cable
 
 ### Raspberry Pi MCP2515 pin output
 * is shared with display SPI
+
 Pin Number|description|colour pi|colour MCP2515|MCP2515 description
 ------------ | ------------- | ------------- | ------------- | -------------
 pin | num| (pi | desc) | colour | 2515
@@ -124,30 +127,42 @@ pin | num| (pi | desc) | colour | 2515
 
 
 
+## Arduino wiring
 
-TAILS from engine bay:
-red/black - power.
-green/white/black - map/oil/fuel
-green/black - water temp
-blue/black - IAT preIC
-white/black - IAT postIC
-yellow/black - EGT
-brown/black/orange - orange/black - Oil temp,  Brown - spare.
+### Incoming wiring tails from engine bay
+Colours | colour |purpose
+------------ | ------------- | -------------
+red/black| | power.
+green/white/black | green | map 
+green/white/black | white | oil pressure
+black | white | fuel pressure
+green/black | | water temp
+blue/black | | IAT preIC
+white/black | | IAT postIC
+yellow/black | | EGT
+brown/black/orange | orange/black | Oil temp,
+brown/black/orange |   Brown | Ethanol content.
 
-Engine bay sensors connection:
+### Engine bay harness connector
+```
 1234
 5678
 9ABC
 DEFG
-1+5V red
-2GND black
-3MAP sensor green
-4oil pressure white
-5fuel pressure yellow
-7-8:water temp green/black
-9-aIAT preIC white/black
-B-CIAT postIC  blue/black
-FGEGTyellow/black
+```
+
+ Pin | purpose | Colour
+ ------------ | ------------- | -------------
+1|+5V | red
+2|GND |black
+3|MAP sensor| green
+4|oil pressure| white
+5|fuel pressure| yellow
+7-8 |water temp |green/black
+9-a | IAT preIC | white/black
+B-C |IAT postIC  | blue/black
+E | Ethanol content | orange
+FG | EGT | yellow/black 
 
 Junction block:
 1+5V (Shared for +5V,and all resistance sensors)
