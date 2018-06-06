@@ -2,20 +2,21 @@
 # Wiring
 This details wiring I used in my implementation of eingauge for my AUDM 2005 Subary Liberty GT. This is a good starting point, but is mainly documentation for my reference.
 
+Overall hardware/wiring design:
 
-
-
-## Map sensor
-GM copy 3 bar map sensor.
-
-http://www.robietherobot.com/storm/mapsensor.htm
 ```
-(V*8.94)-14.53
- /1024 =
-(analog*.04362)-14.53
+Ethanol sensor arduino \
+                       |
+Sensors->loom plug in engine bay->Arduino->dash stepper motors(boost/tach/speed)
+                                   |    |
+                                   |    |-Thermocouple amplifier
+                                   |    |
+Car power->Power management box --/     MCP2515(CAN)----car canbus
+                        |                              |
+    5" touchscreen----Raspberry pi---MCP2515(CAN)------/
+                         |
+                      128x96 OLED in dash.              
 ```
-gives you PSI. 
-
 ## Power box.
 I have a power box that manages power. It performs the following functions:
 * Voltage divider to measure the cars voltage 
@@ -36,7 +37,7 @@ Colour | Meaning
 Red | IGN
 Black/brown | GND
 Yellow | Illum
-White/greenConstant | +12V
+White/green | Constant +12V
 
 ### Power box arduino pin output
 power box | description | Wire colour
@@ -164,69 +165,90 @@ B-C |IAT postIC  | blue/black
 E | Ethanol content | orange
 FG | EGT | yellow/black 
 
-Junction block:
-1+5V (Shared for +5V,and all resistance sensors)
-2GND
-3MAP (analog direct)
-4Oil pressure (analog direct)
-5Fuel pressure (analog direct)
-6Water temp GND (voltage divider 10k)
-7IAT preIC GND (voltage divider 1k)
-8IAT postIC GND (voltage divider1 1k)
-9Oil temp GND (voltage divider 10k)
-10AFR (analog direct)
-11EGT
-12EGT
+### Junction block for arduino
+Pin | Description | detail
+------------ | ------------- | -------------
+1 | +5V| (Shared for +5V,and all resistance sensors)
+2 | GND|
+3 | MAP | (analog direct)
+4 | Oil pressure | (analog direct)
+5 | Fuel pressure | (analog direct)
+6 | Water temp GND | (voltage divider 10k)
+7 | IAT preIC GND | (voltage divider 1k)
+8 | IAT postIC GND | (voltage divider 1k)
+9 | Oil temp GND | (voltage divider 10k)
+10 | AFR | (analog direct)
+11 | EGT |
+12 | EGT |
 
-Arduino  inputs:
-A0MAP (Brown)
-A1Oil pressure (red)
-A2Fuel pressure (orange)
-A3Water temp (yellow)
-A4IAT preIC (green)
-A5IAT postIC (blue)
-A6MAP reference. (purple)
-A7Oil Temp (grey)
-A8AFR (white)
-A15+12V reference 220k/100k voltage divider - from power box (black)
+## Arduino  inputs
 
-PWM outputs:
-PWM2-5Boost gauge (green heatshrink)
-PWM6-9Tacho (red heatshrink)
-PWM10-13Speedo (Black heatshrink)
+### Arduino analog
+Pin | Description | Colour
+------------ | ------------- | -------------
+A0 | MAP | Brown 
+A1 | Oil pressure | red
+A2 | Fuel pressure | orange
+A3 | Water temp | yellow
+A4 | IAT preIC | green
+A5 | IAT postIC | blue
+A6 | MAP reference | purple
+A7 | Oil Temp | grey
+A8 | AFR | white
+A15 | +12V reference 220k/100k voltage divider - from power box | black
 
-Digital inputs/outputs:
-I51Lights sense grey
-I53Ignition sense white
-O31(Arduino power relay) Yellow
-O33(Pi power relay) Green
-O35(screen power relay) Blue
-O37(Clock power relay) Purple
-O22CS Thermocouple. Purple
-I24Interrupt MCP2515 Orange
-O26CS MCP2515 (CAN) Red
+### Arduino PWM outputs:
 
+Pin | Description | Colour
+------------ | ------------- | -------------
+PWM2-5 | Boost gauge | green heatshrink
+PWM6-9 | Tacho | red heatshrink 
+PWM10-13 | Speedo | Black heatshrink
+
+### Arduino Digital inputs/outputs:
+
+Pin | Description | Colour
+------------ | ------------- | -------------
+I51 | Lights sense | grey
+I53 | Ignition sense | white
+O31 | Arduino power relay | Yellow
+O33 | Pi power relay | Green
+O35 | screen power relay) | Blue
+O37 | Clock power relay | Purple
+O22 | CS Thermocouple. | Purple
+I24 | Interrupt MCP2515 | Orange
+O26 | CS MCP2515  | Red
+
+
+
+Arduino ISCP plug
+
+```
+^ To mega chip.
+123
+456
+```
+Maps to flat cable starting at red using A-F
+Flat cable starting at red #1
+
+ISCP pin | Description | pin
+------------ | ------------- | -------------
+A | MISO (red) | 3
+B | VCC (+5V) | 6
+C | Clock | 2
+D | MOSI | 5
+E | Reset (NC) | 1
+F | GND | 4
+
+## CAN Wiring
 
 High speed CAN between BIU and ECU (page 131 of wiring manual)
-
+```
 BIU...
 B280 plug
 far right of connector.
 B30L blue (CAN L)
 B20R Red ( CAN H)
+```
+Goes to both MCP2515 boards.
 
-Goes to MCP2515 board.
-
-
-Arduino ISCP plug
-
-^ To mega chip.
-123
-456
-Maps to flat cable starting at red using A-F
-A MISO (red) 3
-B VCC (+5V) 6
-C Clock 2
-D MOSI 5
-E Reset (NC) 1
-F GND 4
