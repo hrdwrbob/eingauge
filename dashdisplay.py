@@ -2,11 +2,17 @@ import struct
 import time
 import pygame, sys
 import numpy as np
+import can
 from collections import deque
 from pygame.locals import *
+import can
+
+can_interface = 'can0'
+canenabled = True
+
 REFRESHDELAY=1000
 #screen = pygame.display.set_mode((800, 480),pygame.FULLSCREEN)
-screen = pygame.display.set_mode((800, 480))
+screen = pygame.display.set_mode((128, 96),pygame.FULLSCREEN)
 pygame.font.init()
 rawdata = dict()
 realdata = dict()
@@ -53,9 +59,7 @@ class Sensor:
   arduinomap['iat'] = [99, 125, 155, 190, 229, 272, 319, 368, 419, 470, 521, 570, 616, 660, 700, 737, 770, 800, 827, 850, 871, 889, 905, 919, 931, 942, 951, 959, 966, 972, 978 ]
   arduinomap['temp'] = [ 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150]
   arduinomap['tempsensor'] = [0, 20, 40, 80, 120, 160, 203, 239, 279, 321, 361, 409, 458, 500, 530, 558, 601, 631, 666, 701, 736, 771, 806, 841, 876, 911, 946, 981, 1016, 1051, 1086]
-  format = {
-    'text': self.display_text,
-  }
+
   def __init__(self,name,units,type,format):
     self.name = name
     self.units = units
@@ -81,23 +85,19 @@ class Sensor:
         value = round((value*.04362)/2+4,2)
       self.values.add(value)
 
-  def display_text(self):
-   myfont  = pygame.font.Font("gaugefont.ttf",40)
-   rendername=myfont.render(self.name,1,(0,0,0))
-   print('%.2f' % self.values.get_average())
-   rendervalue=myfont.render(self.values.get_average().tostring(),1,(0,0,0))
-   #rendervalue=myfont.render("71",1,(0,0,0))
-   renderunits=myfont.render(self.units, 1,(0,0,0))
-   x = self.location[0]
-   y = self.location[1]
-   screen.blit(rendername, (x, y))
-   x += (rendername.get_size()[0] +5)
-   screen.blit(rendervalue, (x, y))
-   x += (rendervalue.get_size()[0] +5)
-   screen.blit(renderunits, (x, y))
+  def display_text(self,text,size,y):
+    myfont  = pygame.font.Font("gaugefont.ttf",size)
+    rendervalue=myfont.render(text,1,(255,255,255))
+    x = 64-(rendervalue.get_size()[0]/2)
+    screen.blit(rendervalue, (x, y))
+    return rendervalue.get_size()[1]
 
   def update_display(self):
-    format[self.format]()
+    y = 0
+    y += self.display_text(self.name,14,y)
+    #y += display_text(self.values.get_average().tostring(),40,y)
+    y += self.display_text("71",60,y)
+    y += self.display_text(self.units,20,y)
 
   def set_location(self,x,y):
     self.location = [x,y]
@@ -106,11 +106,10 @@ class Sensor:
 print "ytfytfty"
 # Initialise sensors
 sensors = dict()
-sensors['oilpressure'] = Sensor("Oil Pressure","PSI","pressure")
-sensors['oilpressure'].set_location(50,50)
+#sensors['fuelpressure'] = Sensor("Fuel Pressure","PSI","pressure","default")
+sensors['fuelpressure'] = Sensor("Fuel Pressure","LIBERTY","pressure","default")
 
-sensors['fuelpressure'] = Sensor("Fuel Pressure","PSI","pressure")
-sensors['oilpressure'].set_location(0,50)
+sensors['fuelpressure'].set_location(0,0)
 
 #sensors[enginemap] = Sensor("Boost","PSI","enginemap")
 #sensors[afr] = Sensor("AFR","AFR","afr",3)
@@ -120,21 +119,35 @@ sensors['oilpressure'].set_location(0,50)
 # reference map.
 
 def display_gauges():
-  screen.fill((255,255,255))
+  screen.fill((0,0,0))
   for key in sensors:
-    sensors[key].insert_data(500)
     sensors[key].update_display()
     print key
+  screen.blit(stiImage,(0,0))
   pygame.display.update()
 
+def can_message(message):
+  if (message.arbitration_id == 0x512) :
+    speedcount = struct.unpack('xh',m2.data)
+    speed = speedcount * 0.05625
+    sensors['speed'].insert_data(500)
+
 # Init.
-screen.fill((255,255,255))
+screen.fill((0,0,0))
 pygame.display.update()
 pygame.init()
 refreshtime= pygame.time.get_ticks()
 poll_gauge_timer = pygame.USEREVENT+1
 pygame.time.set_timer ( poll_gauge_timer, REFRESHDELAY )
+pygame.mouse.set_visible(False)
+bus = can.interface.Bus(can_interface, bustype='socketcan_ctypes')
+stiImage = pygame.image.load('stismall.png')
+
 while True:
+  message = bus.recv(0.0)  # Timeout in seconds.
+  if message != None:
+    can_message(message)
+
   for event in pygame.event.get():
     if event.type == QUIT:
       pygame.quit()
@@ -142,3 +155,4 @@ while True:
     elif event.type == poll_gauge_timer:
       #get_data()
       display_gauges()
+
